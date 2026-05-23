@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Real-time hand gesture recognition that counts your fingers using AI-powered computer vision. Show your hand to the camera and see the magic!">
+    <title>Hand Gesture Recognition — Finger Counter</title>
+
+    <!-- Socket.IO Client (bundled locally for offline use) -->
+    <script src="/static/js/socket.io.min.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- Animated Background Particles -->
+    <div class="bg-particles" id="particles"></div>
+
+    <!-- Main Container -->
+    <div class="container">
+
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <span class="logo-icon">🖐️</span>
+                <h1>Hand Gesture <span class="gradient-text">Recognition</span></h1>
+            </div>
+            <p class="subtitle">Show your hand to count fingers in real-time</p>
+            <div class="status-badge" id="connectionStatus">
+                <span class="status-dot"></span>
+                <span class="status-text">Connecting...</span>
+            </div>
+        </header>
+
+        <!-- Main Content Grid -->
+        <main class="main-grid">
+
+            <!-- Video Feed Card -->
+            <div class="card video-card">
+                <div class="card-header">
+                    <h2>📷 Camera Feed</h2>
+                    <div class="fps-badge" id="fpsBadge">-- FPS</div>
+                </div>
+                <div class="video-container" id="videoContainer">
+                    <!-- Raw webcam feed (hidden, used for capture) -->
+                    <video id="webcamVideo" autoplay playsinline muted></video>
+                    <!-- Processed frame from server -->
+                    <img id="processedFrame" alt="Processed hand detection frame">
+                    <!-- Canvas for frame capture (hidden) -->
+                    <canvas id="captureCanvas"></canvas>
+                    <!-- Overlay when camera is off -->
+                    <div class="camera-overlay" id="cameraOverlay">
+                        <div class="camera-icon">📸</div>
+                        <p>Click "Start Camera" to begin</p>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button class="btn btn-primary" id="startBtn" onclick="toggleCamera()">
+                        <span class="btn-icon">▶️</span>
+                        Start Camera
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Panel -->
+            <div class="results-panel">
+
+                <!-- Big Counter Card -->
+                <div class="card counter-card">
+                    <div class="card-header">
+                        <h2>🔢 Finger Count</h2>
+                    </div>
+                    <div class="counter-display">
+                        <div class="counter-number" id="totalCount">0</div>
+                        <div class="counter-label">fingers detected</div>
+                        <div class="counter-glow" id="counterGlow"></div>
+                    </div>
+                </div>
+
+                <!-- Hand Details Cards -->
+                <div class="hands-grid">
+                    <!-- Left Hand -->
+                    <div class="card hand-card" id="leftHandCard">
+                        <div class="card-header">
+                            <h3>🫲 Left Hand</h3>
+                            <span class="hand-count" id="leftHandCount">0</span>
+                        </div>
+                        <div class="finger-indicators" id="leftFingers">
+                            <div class="finger" data-finger="thumb">
+                                <div class="finger-dot"></div>
+                                <span>Thumb</span>
+                            </div>
+                            <div class="finger" data-finger="index">
+                                <div class="finger-dot"></div>
+                                <span>Index</span>
+                            </div>
+                            <div class="finger" data-finger="middle">
+                                <div class="finger-dot"></div>
+                                <span>Middle</span>
+                            </div>
+                            <div class="finger" data-finger="ring">
+                                <div class="finger-dot"></div>
+                                <span>Ring</span>
+                            </div>
+                            <div class="finger" data-finger="pinky">
+                                <div class="finger-dot"></div>
+                                <span>Pinky</span>
+                            </div>
+                        </div>
+                        <div class="hand-inactive" id="leftHandInactive">No hand detected</div>
+                    </div>
+
+                    <!-- Right Hand -->
+                    <div class="card hand-card" id="rightHandCard">
+                        <div class="card-header">
+                            <h3>🫱 Right Hand</h3>
+                            <span class="hand-count" id="rightHandCount">0</span>
+                        </div>
+                        <div class="finger-indicators" id="rightFingers">
+                            <div class="finger" data-finger="thumb">
+                                <div class="finger-dot"></div>
+                                <span>Thumb</span>
+                            </div>
+                            <div class="finger" data-finger="index">
+                                <div class="finger-dot"></div>
+                                <span>Index</span>
+                            </div>
+                            <div class="finger" data-finger="middle">
+                                <div class="finger-dot"></div>
+                                <span>Middle</span>
+                            </div>
+                            <div class="finger" data-finger="ring">
+                                <div class="finger-dot"></div>
+                                <span>Ring</span>
+                            </div>
+                            <div class="finger" data-finger="pinky">
+                                <div class="finger-dot"></div>
+                                <span>Pinky</span>
+                            </div>
+                        </div>
+                        <div class="hand-inactive" id="rightHandInactive">No hand detected</div>
+                    </div>
+                </div>
+
+                <!-- Gesture Label -->
+                <div class="card gesture-card">
+                    <div class="gesture-emoji" id="gestureEmoji">✊</div>
+                    <div class="gesture-name" id="gestureName">Make a gesture!</div>
+                </div>
+
+            </div>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Built with <span class="heart">❤️</span> using MediaPipe, OpenCV & Flask</p>
+        </footer>
+
+    </div>
+
+    <!-- App Script -->
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

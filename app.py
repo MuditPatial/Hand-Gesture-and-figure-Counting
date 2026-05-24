@@ -10,6 +10,7 @@ Usage:
 """
 
 import base64
+import os
 import cv2
 import numpy as np
 from flask import Flask, render_template, send_from_directory
@@ -23,6 +24,18 @@ app.config["SECRET_KEY"] = "hand-gesture-secret-key"
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 
 # --- Hand Detector (shared across connections) ---
+# Auto-download model if not present (needed for cloud deployments)
+MODEL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "hand_landmarker.task")
+if not os.path.exists(MODEL_PATH):
+    print("  Downloading hand_landmarker.task model (~10 MB)...")
+    import urllib.request
+    MODEL_URL = (
+        "https://storage.googleapis.com/mediapipe-models/"
+        "hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task"
+    )
+    urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
+    print("  Model downloaded.")
+
 detector = HandDetector(max_hands=2, detection_confidence=0.7, tracking_confidence=0.5)
 
 
@@ -127,9 +140,10 @@ if __name__ == "__main__":
     print("  Hand Gesture Recognition - Web Server")
     print("=" * 55)
     print()
-    print("  Starting server at http://localhost:5000")
+    port = int(os.environ.get("PORT", 5000))
+    print(f"  Starting server at http://localhost:{port}")
     print("  Open the URL in your browser to begin.")
     print("  Press Ctrl+C to stop.\n")
 
-    socketio.run(app, host="0.0.0.0", port=5000, debug=False, allow_unsafe_werkzeug=True)
+    socketio.run(app, host="0.0.0.0", port=port, debug=False, allow_unsafe_werkzeug=True)
 

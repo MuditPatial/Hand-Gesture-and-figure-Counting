@@ -1,7 +1,6 @@
 FROM python:3.10-slim
 
 # System deps needed by OpenCV headless + MediaPipe
-# Note: libgl1-mesa-glx was renamed to libgl1 in Debian Bookworm
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1 \
     libglib2.0-0 \
@@ -20,7 +19,7 @@ COPY . .
 ENV PORT=10000
 EXPOSE 10000
 
-CMD gunicorn --worker-class geventwebsocket.gunicorn.workers.GeventWebSocketWorker \
+CMD gunicorn --worker-class eventlet \
     --workers 1 \
     --bind 0.0.0.0:$PORT \
     --timeout 120 \

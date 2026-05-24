@@ -8,9 +8,9 @@ Usage:
     python app.py
     Then open http://localhost:5000 in your browser.
 """
-# gevent monkey-patch MUST be first — before any other imports
-from gevent import monkey
-monkey.patch_all()
+# eventlet monkey-patch MUST be first — before any other imports
+import eventlet
+eventlet.monkey_patch()
 
 import base64
 import os
@@ -24,7 +24,7 @@ from hand_detector import HandDetector
 # --- Flask App Setup ---
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "hand-gesture-secret-key"
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode="gevent")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode="eventlet")
 
 # --- Hand Detector (shared across connections) ---
 # Auto-download model if not present (needed for cloud deployments)

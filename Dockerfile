@@ -1,12 +1,10 @@
 FROM python:3.10-slim
 
-# System deps needed by OpenCV
-RUN apt-get update && apt-get install -y \
-    libgl1-mesa-glx \
+# System deps needed by OpenCV headless + MediaPipe
+# Note: libgl1-mesa-glx was renamed to libgl1 in Debian Bookworm
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1 \
     libglib2.0-0 \
-    libsm6 \
-    libxext6 \
-    libxrender-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

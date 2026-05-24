@@ -8,6 +8,9 @@ Usage:
     python app.py
     Then open http://localhost:5000 in your browser.
 """
+# gevent monkey-patch MUST be first — before any other imports
+from gevent import monkey
+monkey.patch_all()
 
 import base64
 import os

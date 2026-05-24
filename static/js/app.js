@@ -239,29 +239,21 @@ function handleProcessedFrame(data) {
 // Hand Card Updates
 // =============================================================================
 function updateHandCards(hands) {
-    // Reset both cards first
     resetHandCards();
 
-    // Update each detected hand
     hands.forEach(hand => {
-        // Note: MediaPipe mirrors labels — "Right" in results = user's left hand on screen
-        // We display based on the actual label from MediaPipe
-        const isLeft = hand.label === 'Left';
-        const card = isLeft ? leftHandCard : rightHandCard;
-        const countEl = isLeft ? leftHandCount : rightHandCount;
-        const fingersEl = isLeft ? leftFingers : rightFingers;
+        // Labels are now corrected server-side (Left/Right match real hands)
+        const isLeft   = hand.label === 'Left';
+        const card     = isLeft ? leftHandCard     : rightHandCard;
+        const countEl  = isLeft ? leftHandCount    : rightHandCount;
+        const fingersEl= isLeft ? leftFingers      : rightFingers;
 
         card.classList.add('active');
         countEl.textContent = hand.finger_count;
 
-        // Update individual finger dots
         const fingerDivs = fingersEl.querySelectorAll('.finger');
         hand.fingers_up.forEach((isUp, idx) => {
-            if (isUp) {
-                fingerDivs[idx].classList.add('up');
-            } else {
-                fingerDivs[idx].classList.remove('up');
-            }
+            fingerDivs[idx].classList.toggle('up', isUp);
         });
     });
 }
@@ -269,61 +261,59 @@ function updateHandCards(hands) {
 function resetHandCards() {
     leftHandCard.classList.remove('active');
     rightHandCard.classList.remove('active');
-    leftHandCount.textContent = '0';
+    leftHandCount.textContent  = '0';
     rightHandCount.textContent = '0';
-
     document.querySelectorAll('.finger').forEach(f => f.classList.remove('up'));
 }
 
 // =============================================================================
-// Gesture Detection
+// Gesture Display  (emoji + name come from the Python server)
 // =============================================================================
+
+const GESTURE_EMOJI_MAP = {
+    'FIST':        { emoji: '✊',  label: 'Fist' },
+    'THUMBS_UP':   { emoji: '👍',  label: 'Thumbs Up' },
+    'THUMBS_DOWN': { emoji: '👎',  label: 'Thumbs Down' },
+    'THUMB_OUT':   { emoji: '👍',  label: 'Thumb Out' },
+    'ONE':         { emoji: '☝️', label: 'One / Point' },
+    'MIDDLE':      { emoji: '🖕',  label: 'Middle Finger' },
+    'RING':        { emoji: '💍',  label: 'Ring Up' },
+    'PINKY':       { emoji: '🤙',  label: 'Pinky Up' },
+    'PEACE':       { emoji: '✌️', label: 'Peace / Two' },
+    'GUN':         { emoji: '🤜',  label: 'Finger Gun' },
+    'HANG_LOOSE':  { emoji: '🤙',  label: 'Hang Loose / Shaka' },
+    'TWO':         { emoji: '2️⃣', label: 'Two' },
+    'THREE':       { emoji: '3️⃣', label: 'Three' },
+    'ROCK_ON':     { emoji: '🤘',  label: 'Rock On' },
+    'FOUR':        { emoji: '4️⃣', label: 'Four' },
+    'OK':          { emoji: '👌',  label: 'OK Sign' },
+    'FIVE':        { emoji: '🖐️', label: 'Open Palm / Five' },
+    'UNKNOWN':     { emoji: '🤔',  label: 'Unknown Gesture' },
+};
+
 function updateGesture(totalFingers, hands) {
-    let emoji = '✊';
-    let name = 'Fist';
+    let emoji = '👀';
+    let name  = 'Show your hand!';
 
     if (hands.length === 0) {
         emoji = '👀';
-        name = 'Show your hand!';
-    } else if (hands.length === 1) {
-        const h = hands[0];
-        const f = h.fingers_up;
-
-        if (totalFingers === 0) {
-            emoji = '✊';
-            name = 'Fist';
-        } else if (totalFingers === 1) {
-            if (f[1]) { emoji = '☝️'; name = 'One / Point'; }
-            else if (f[0]) { emoji = '👍'; name = 'Thumbs Up'; }
-            else if (f[4]) { emoji = '🤙'; name = 'Pinky'; }
-            else { emoji = '1️⃣'; name = 'One'; }
-        } else if (totalFingers === 2) {
-            if (f[1] && f[2]) { emoji = '✌️'; name = 'Peace / Two'; }
-            else if (f[0] && f[4]) { emoji = '🤟'; name = 'I Love You'; }
-            else if (f[0] && f[1]) { emoji = '🔫'; name = 'Finger Gun'; }
-            else { emoji = '2️⃣'; name = 'Two'; }
-        } else if (totalFingers === 3) {
-            if (f[1] && f[2] && f[3]) { emoji = '3️⃣'; name = 'Three'; }
-            else if (f[0] && f[1] && f[4]) { emoji = '🤟'; name = 'Rock On'; }
-            else { emoji = '3️⃣'; name = 'Three'; }
-        } else if (totalFingers === 4) {
-            emoji = '4️⃣';
-            name = 'Four';
-        } else if (totalFingers === 5) {
-            emoji = '🖐️';
-            name = 'Open Palm / Five';
-        }
+        name  = 'Show your hand!';
+    } else if (hands.length >= 2 && totalFingers === 10) {
+        emoji = '🙌'; name = 'All Ten! High Five!';
+    } else if (hands.length >= 2 && totalFingers === 0) {
+        emoji = '👊'; name = 'Double Fist';
     } else {
-        // Two hands
-        if (totalFingers === 0) { emoji = '👊👊'; name = 'Double Fist'; }
-        else if (totalFingers === 10) { emoji = '🙌'; name = 'All Ten!'; }
-        else { emoji = '🔢'; name = totalFingers + ' Fingers'; }
+        // Use the gesture recognised by the Python server (authoritative)
+        const h   = hands[0];
+        const key = h.gesture_emoji || 'UNKNOWN';
+        const got = GESTURE_EMOJI_MAP[key];
+        emoji = got ? got.emoji : '🤔';
+        name  = h.gesture || (got ? got.label : 'Unknown');
     }
 
-    // Animate if changed
-    if (gestureEmoji.textContent !== emoji) {
+    if (gestureEmoji.textContent !== emoji || gestureName.textContent !== name) {
         gestureEmoji.textContent = emoji;
-        gestureName.textContent = name;
+        gestureName.textContent  = name;
         gestureEmoji.classList.add('pop');
         setTimeout(() => gestureEmoji.classList.remove('pop'), 400);
     }

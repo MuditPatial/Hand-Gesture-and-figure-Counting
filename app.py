@@ -96,10 +96,12 @@ def handle_video_frame(data):
         hands_info = []
         for hand in result["hands"]:
             hands_info.append({
-                "label": hand["label"],
-                "finger_count": hand["finger_count"],
-                "fingers_up": hand["fingers_up"],
-                "confidence": hand["confidence"],
+                "label":         hand["label"],
+                "finger_count":  hand["finger_count"],
+                "fingers_up":    hand["fingers_up"],
+                "gesture":       hand["gesture"],
+                "gesture_emoji": hand["gesture_emoji"],
+                "confidence":    hand["confidence"],
             })
 
         response = {

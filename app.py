@@ -21,13 +21,14 @@ from hand_detector import HandDetector
 # --- Flask App Setup ---
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "hand-gesture-secret-key"
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode="gevent")
 
 # --- Hand Detector (shared across connections) ---
 # Auto-download model if not present (needed for cloud deployments)
 MODEL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "hand_landmarker.task")
 if not os.path.exists(MODEL_PATH):
-    print("  Downloading hand_landmarker.task model (~10 MB)...")
+    # Fallback: download model if not bundled (shouldn't happen in Docker builds)
+    print("  Downloading hand_landmarker.task model (~8 MB)...")
     import urllib.request
     MODEL_URL = (
         "https://storage.googleapis.com/mediapipe-models/"

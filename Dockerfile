@@ -15,9 +15,15 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy all project files
+# Copy all project files (including the model)
 COPY . .
 
-EXPOSE 5000
+# Render assigns a dynamic port via $PORT env var
+ENV PORT=10000
+EXPOSE 10000
 
-CMD ["python", "app.py"]
+CMD gunicorn --worker-class geventwebsocket.gunicorn.workers.GeventWebSocketWorker \
+    --workers 1 \
+    --bind 0.0.0.0:$PORT \
+    --timeout 120 \
+    "app:app"
